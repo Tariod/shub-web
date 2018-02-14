@@ -6,86 +6,113 @@ import warning from '../icons/warning.svg';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import Actions from '../actions/index';
+import { Carousel } from 'react-responsive-carousel';
 
 const logOutAction = Actions.logOutAction;
-
+const getPinnedAction = Actions.getPinnedAction;
 const styles = {
   header: {
-    background: '#7F94B5',
+    background: 'var(--header-bg-color)',
     width: '100%',
     height: '11vh',
-    color: '#607896',
+    color: 'var(--header-color)',
   },
   leftSide: {
     height: 'inherit',
     float: 'left',
-    width: '20%',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingLeft: '4vw',
+    width: '40%',
+    paddingLeft: '2vw',
+    overflow: 'hidden',
+    '& button': {
+      display: 'none',
+    },
+    '& ul': {
+      margin: '0',
+    },
   },
   rightSide: {
-    height: 'inherit',
-    float: 'right',
-    width: '13%',
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingRight: '0vw',
+    justifyContent: 'center',
+    height: 'inherit',
+    float: 'right',
+    width: '8%',
+    paddingRight: '2vw',
   },
   warning: {
-    height: '40%',
-    margin: 'auto',
+    height: '6vh',
+    margin: 'auto 0',
   },
   singIn: {
+    marginLeft: '1vw',
     height: '100%',
   },
   name: {
-    fontSize: '1.5vw',
+    fontSize: '1.2vw',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
   },
   message: {
+    width: '100%',
     fontSize: '1.2vw',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     paddingLeft: '5%',
+    '& span': {
+      fontSize: '1.2vw',
+    },
+  },
+  pinContainer: {
+    height: '11vh',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    '& span': {
+      textAlign: 'left',
+      margin: 'auto 0 auto 1vw',
+    },
   },
 };
 
 class Header extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      message: this.props.message,
-    };
-  }
   componentDidMount() {
-    this.props.onHeaderDidMount();
+    this.props.onHeaderDidMount(localStorage.getItem('sessionId'));
   }
   handleLogOut = () => {
     this.props.onLogOutClick(this.props.sessionInfo.sessionId);
   }
 
   render() {
-    const { classes } = this.props;
+    const { classes, pinned } = this.props;
+    console.log(pinned);
     return (
       <div className={classes.header}>
-        <div className={classes.leftSide}>
-          {localStorage.getItem('sessionId') !== 'false' ?
-            <img className={classes.warning} src={warning} /> :
-            <Fragment />
-          }
-          <span className={classes.message}>
-            {localStorage.getItem('sessionId') !== 'false' ?
-              this.state.message :
-              ''
+        {localStorage.getItem('sessionId') !== 'false' ? (
+          <Carousel
+            className={classes.leftSide}
+            autoPlay
+            interval={3000}
+            infiniteLoop axis="vertical"
+            showStatus={false} showIndicators={false} showArrows={false}
+            showThumbs={false}
+          >
+            {
+              pinned.map(pin => (
+                <div className={classes.pinContainer} key={pin.message}>
+                  <img className={classes.warning} src={warning} />
+                  <span >
+                    {pin.message}
+                  </span>
+                </div>
+              ))
             }
-          </span>
-        </div>
+
+          </Carousel>
+        ) :
+          <Fragment />
+        }
         <div className={classes.rightSide}>
           <span className={classes.name}>{this.props.name}</span>
           <Link
@@ -107,20 +134,26 @@ class Header extends Component {
 
 Header.propTypes = {
   name: PropTypes.string.isRequired,
-  message: PropTypes.string.isRequired,
   onHeaderDidMount: PropTypes.func.isRequired,
   onLogOutClick: PropTypes.func.isRequired,
   sessionInfo:  PropTypes.string.isRequired,
   classes: PropTypes.object.isRequired,
+  pinned: PropTypes.array,
 };
 
 export default connect(
   state => ({
     name: state.sessionInfo.name,
     sessionInfo: state.sessionInfo,
+    pinned: state.pinned,
   }),
   dispatch => ({
-    onHeaderDidMount: () => dispatch({ type: 'RENDER_PAGE' }),
+    onHeaderDidMount: (sessionId) => {
+      dispatch({ type: 'RENDER_PAGE' });
+      if (sessionId !== 'false') {
+        dispatch(getPinnedAction(sessionId));
+      }
+    },
     onLogOutClick: (sessionId) => {
       dispatch(logOutAction(sessionId));
     },

@@ -31,11 +31,12 @@ const getMaxLenth = (arr) => {
 
 const styles = {
   timetable: {
+    overflow: 'hidden',
     display: 'grid',
     boxShadow: '2px 2px 2px #888',
     gridTemplateColumns: '1.5fr 2fr 2fr 2fr 2fr 2fr 2fr',
     '& *': {
-      color: '#3d628f',
+      color: 'var(--table-color)',
     },
   },
 };

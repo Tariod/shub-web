@@ -4,15 +4,11 @@ import injectSheet from 'react-jss';
 import done from '../icons/done2.svg';
 import cross from '../icons/cross.svg';
 import hourglass from '../icons/hourglass.svg';
-import { connect } from 'react-redux';
-import Actions from '../actions/index';
-
-const homeworkAction = Actions.homeworkAction;
 
 const styles = {
   scrollDiv: {
     overflowY: 'scroll',
-    background: '#B1BBCC',
+    background: 'var(--table-bg-color)',
     paddingRight: '5%',
     borderRadius: '5px',
     boxShadow: '2px 2px 4px #888',
@@ -20,7 +16,7 @@ const styles = {
       display: 'none',
     },
     '& *': {
-      color: '#3d628f',
+      color: 'var(--table-color)',
     },
   },
   dayContainer: {
@@ -48,7 +44,7 @@ const styles = {
   homework: {
     display: 'grid',
     gridTemplateColumns: '6fr 1fr',
-    background: '#93A1B6',
+    background: 'var(--table-cell1-bg-color)',
     padding: '1vh',
     borderRadius: '5px',
     margin: '2vh 0',
@@ -69,16 +65,21 @@ const styles = {
     borderRadius: '100%',
     margin: 'auto',
     height: '2.5vw',
-    background: '#e67e22',
+    background: '#b233aa',
   },
 };
 
 class HomeworkTodo extends Component {
+  componentDidMount() {
+    this.props.onHomeworkClick(null, localStorage.getItem('sessionId'), !null);
+  }
+
   handleDoneClick = (
     homeworkId,
     sessionId,
-    homework
-  ) => () => this.props.onHomeworkClick(homeworkId, sessionId, homework);
+    done,
+  ) => () => this.props.onHomeworkClick(homeworkId, sessionId, done);
+
   render() {
     const { classes, homework, sessionId } = this.props;
     const dates = homework.map(task => task.date).sort((a, b) => a > b);
@@ -105,9 +106,9 @@ class HomeworkTodo extends Component {
               {homework.filter(x => x.date === date).map(task => (
                 <div
                   className={classes.homework}
-                  key={task.desc}
+                  key={task.id}
                 >
-                  <h1 className={classes.task}>{task.desc}</h1>
+                  <h1 className={classes.task}>{task.description}</h1>
                   {
                     task.done === 'waiting' ? (
                       <img
@@ -116,7 +117,7 @@ class HomeworkTodo extends Component {
                         onClick={this.handleDoneClick(
                           task.id,
                           sessionId,
-                          homework
+                          task.done,
                         )}
                       />
                     ) :
@@ -127,7 +128,7 @@ class HomeworkTodo extends Component {
                           onClick={this.handleDoneClick(
                             task.id,
                             sessionId,
-                            homework
+                            task.done,
                           )}
                         />
                       ) : (
@@ -137,7 +138,7 @@ class HomeworkTodo extends Component {
                           onClick={this.handleDoneClick(
                             task.id,
                             sessionId,
-                            homework
+                            task.done,
                           )}
                         />
                       )}
@@ -158,14 +159,4 @@ HomeworkTodo.propTypes = {
   sessionId: PropTypes.string,
 };
 
-export default connect(
-  state => ({
-    homework: state.homeWork,
-    sessionId: state.sessionInfo.sessionId,
-  }),
-  dispatch => ({
-    onHomeworkClick: (homeworkId, sessionId, homework) => {
-      dispatch(homeworkAction(homeworkId, sessionId, homework));
-    },
-  })
-)(injectSheet(styles)(HomeworkTodo));
+export default (injectSheet(styles)(HomeworkTodo));
